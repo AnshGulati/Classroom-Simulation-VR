@@ -14,11 +14,14 @@ public class ChairSitTrigger : MonoBehaviour
     private float holdTimer = 0f;
     private float requiredHoldTime = 1f;
 
+    [SerializeField] private VoiceManager voiceManager;
+
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            voiceManager.SetCurrentChairID(chairID);
             VoiceLinesManager.Instance.SetCurrentChair(this);
             playerInTrigger = true;
             GameTransitionManager.Instance.ShowInstructionUI(chairID, true);

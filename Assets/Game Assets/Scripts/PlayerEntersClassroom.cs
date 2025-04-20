@@ -26,6 +26,8 @@ public class PlayerEntersClassroom : MonoBehaviour
     private Transform player;
     private Dictionary<Transform, Quaternion> originalRotations = new Dictionary<Transform, Quaternion>();
 
+    private Coroutine pulseCoroutine;
+
     private void Start()
     {
         foreach (Transform student in studentHeadsToLook)
@@ -122,7 +124,7 @@ public class PlayerEntersClassroom : MonoBehaviour
 
         // Delay then start chair highlight
         yield return new WaitForSeconds(delayBeforeChairHighlight);
-        StartCoroutine(PulseOutline());
+        pulseCoroutine = StartCoroutine(PulseOutlineCoroutine());
 
         foreach (GameObject arrow in directionalArrows)
         {
@@ -130,7 +132,7 @@ public class PlayerEntersClassroom : MonoBehaviour
         }
     }
 
-    private IEnumerator PulseOutline()
+    private IEnumerator PulseOutlineCoroutine()
     {
         voiceLinesManager.StartLine4Loop();
         textTypewriterAnim.NextLine();
@@ -152,10 +154,22 @@ public class PlayerEntersClassroom : MonoBehaviour
 
     public void StopOutlineAndArrows()
     {
-        StopCoroutine(PulseOutline());
+        if (pulseCoroutine != null)
+        {
+            StopCoroutine(pulseCoroutine);
+            pulseCoroutine = null;
+        }
+
+        foreach (Material mat in outlineMaterials)
+        {
+            mat.SetFloat("_OutlineWidth", 0); // disable the outline
+        }
+
         foreach (GameObject arrow in directionalArrows)
         {
             arrow.SetActive(false);
         }
+
+        isPulsing = false;
     }
 }

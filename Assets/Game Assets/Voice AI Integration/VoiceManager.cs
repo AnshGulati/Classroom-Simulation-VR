@@ -9,12 +9,21 @@ using UnityEngine.Events;
 
 public class VoiceManager : MonoBehaviour
 {
+    [System.Serializable]
+    public class ChairData
+    {
+        public int chairID;
+        public TextMeshProUGUI transcriptionText;
+    }
+
     [Header("Wit Configuration")]
     [SerializeField] private AppVoiceExperience appVoiceExperience;
     [SerializeField] private WitResponseMatcher witResponseMatcher;
 
     [Header("UI - Transcript")]
-    [SerializeField] private TextMeshProUGUI transcriptionText;
+    [SerializeField] private List<ChairData> chairList;
+    private Dictionary<int, TextMeshProUGUI> chairTextMap;
+    private int currentChairID = -1;
 
     [Header("Voice Events")]
     [SerializeField] private UnityEvent wakeWordDetected;
@@ -24,6 +33,12 @@ public class VoiceManager : MonoBehaviour
 
     private void Awake()
     {
+        chairTextMap = new Dictionary<int, TextMeshProUGUI>();
+        foreach (var chair in chairList)
+        {
+            chairTextMap[chair.chairID] = chair.transcriptionText;
+        }
+
         appVoiceExperience.VoiceEvents.OnRequestCompleted.AddListener(ReactivateVoice);
         appVoiceExperience.VoiceEvents.OnPartialTranscription.AddListener(OnPartialTranscription);
         appVoiceExperience.VoiceEvents.OnFullTranscription.AddListener(OnFullTranscription);
@@ -35,6 +50,11 @@ public class VoiceManager : MonoBehaviour
         }
 
         appVoiceExperience.Activate();
+    }
+
+    public void SetCurrentChairID(int chairID)
+    {
+        currentChairID = chairID;
     }
 
     private void OnDestroy()
@@ -60,14 +80,22 @@ public class VoiceManager : MonoBehaviour
 
     private void OnPartialTranscription(string transcription)
     {
-        if (!_voiceCommandReady) return;
-        transcriptionText.text = transcription;
+        if (!_voiceCommandReady || currentChairID == -1) return;
+        if (chairTextMap.TryGetValue(currentChairID, out var textUI))
+        {
+            textUI.text = transcription;
+        }
     }
 
     private void OnFullTranscription(string transcription)
     {
-        if (!_voiceCommandReady) return;
+        if (!_voiceCommandReady || currentChairID == -1) return;
         _voiceCommandReady = false;
         completeTranscription?.Invoke(transcription);
+
+        if (chairTextMap.TryGetValue(currentChairID, out var textUI))
+        {
+            textUI.text = transcription;
+        }
     }
 }
