@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 
-namespace MikeNspired.UnityXRHandPoser
+namespace UnityEngine.XR.Content.Interaction
 {
     /// <summary>
     /// An interactable that can be pushed by a direct interactor's movement
@@ -16,6 +16,9 @@ namespace MikeNspired.UnityXRHandPoser
             internal bool m_InPressRegion = false;
             internal bool m_WrongSide = false;
         }
+
+        [Serializable]
+        public class ValueChangeEvent : UnityEvent<float> { }
 
         [SerializeField]
         [Tooltip("The object that is visually pressed down")]
@@ -51,7 +54,7 @@ namespace MikeNspired.UnityXRHandPoser
 
         [SerializeField]
         [Tooltip("Events to trigger when the button pressed value is updated. Only called when the button is pressed")]
-        UnityEventFloat m_OnValueChange;
+        ValueChangeEvent m_OnValueChange;
 
         bool m_Pressed = false;
         bool m_Toggled = false;
@@ -63,39 +66,47 @@ namespace MikeNspired.UnityXRHandPoser
         /// <summary>
         /// The object that is visually pressed down
         /// </summary>
-        public Transform Button { get { return m_Button; } set { m_Button = value; } }
+        public Transform button
+        {
+            get => m_Button;
+            set => m_Button = value;
+        }
 
         /// <summary>
         /// The distance the button can be pressed
         /// </summary>
-        public float PressDistance { get { return m_PressDistance; } set { m_PressDistance = value; } }
+        public float pressDistance
+        {
+            get => m_PressDistance;
+            set => m_PressDistance = value;
+        }
 
         /// <summary>
         /// The distance (in percentage from 0 to 1) the button is currently being held down
         /// </summary>
-        public float Value => m_Value;
+        public float value => m_Value;
 
         /// <summary>
         /// Events to trigger when the button is pressed
         /// </summary>
-        public UnityEvent OnPress => m_OnPress;
+        public UnityEvent onPress => m_OnPress;
 
         /// <summary>
         /// Events to trigger when the button is released
         /// </summary>
-        public UnityEvent OnRelease => m_OnRelease;
+        public UnityEvent onRelease => m_OnRelease;
 
         /// <summary>
         /// Events to trigger when the button distance value is changed. Only called when the button is pressed
         /// </summary>
-        public UnityEventFloat OnValueChange => m_OnValueChange;
+        public ValueChangeEvent onValueChange => m_OnValueChange;
 
         /// <summary>
         /// Whether or not a toggle button is in the locked down position
         /// </summary>
-        public bool ToggleValue
+        public bool toggleValue
         {
-            get { return m_ToggleButton && m_Toggled; }
+            get => m_ToggleButton && m_Toggled;
             set
             {
                 if (!m_ToggleButton)

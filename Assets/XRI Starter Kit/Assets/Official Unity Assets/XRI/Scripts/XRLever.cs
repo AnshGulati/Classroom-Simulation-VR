@@ -1,8 +1,7 @@
-using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 
-namespace MikeNspired.UnityXRHandPoser
+namespace UnityEngine.XR.Content.Interaction
 {
     /// <summary>
     /// An interactable lever that snaps into an on or off position by a direct interactor
@@ -10,15 +9,11 @@ namespace MikeNspired.UnityXRHandPoser
     public class XRLever : XRBaseInteractable
     {
         const float k_LeverDeadZone = 0.1f; // Prevents rapid switching between on and off states when right in the middle
-        
+
         [SerializeField]
         [Tooltip("The object that is visually grabbed and manipulated")]
         Transform m_Handle = null;
-        
-        [SerializeField]
-        [Tooltip("The default behaviour uses the attach transform")]
-        bool m_UseControllerForPosition = true;
-        
+
         [SerializeField]
         [Tooltip("The value of the lever")]
         bool m_Value = false;
@@ -45,56 +40,58 @@ namespace MikeNspired.UnityXRHandPoser
         [Tooltip("Events to trigger when the lever deactivates")]
         UnityEvent m_OnLeverDeactivate = new UnityEvent();
 
-        [SerializeField]
-        [Tooltip("Events to trigger when the joystick's value changes")]
-        UnityEventFloat m_OnValueChange = new UnityEventFloat();
-        
         IXRSelectInteractor m_Interactor;
-        ActionBasedController m_Controller;
-        
+
         /// <summary>
         /// The object that is visually grabbed and manipulated
         /// </summary>
-        public Transform Handle { get { return m_Handle; } set { m_Handle = value; } }
+        public Transform handle
+        {
+            get => m_Handle;
+            set => m_Handle = value;
+        }
 
         /// <summary>
         /// The value of the lever
         /// </summary>
-        public bool Value
+        public bool value
         {
-            get { return m_Value; }
-            set { SetValue(value, true); }
+            get => m_Value;
+            set => SetValue(value, true);
         }
 
         /// <summary>
         /// If enabled, the lever will snap to the value position when released
         /// </summary>
-        public bool LockToValue { get; set; }
+        public bool lockToValue { get; set; }
 
         /// <summary>
         /// Angle of the lever in the 'on' position
         /// </summary>
-        public float MaxAngle { get { return m_MaxAngle; } set { m_MaxAngle = value; } }
+        public float maxAngle
+        {
+            get => m_MaxAngle;
+            set => m_MaxAngle = value;
+        }
 
         /// <summary>
         /// Angle of the lever in the 'off' position
         /// </summary>
-        public float MinAngle { get { return m_MinAngle; } set { m_MinAngle = value; } }
+        public float minAngle
+        {
+            get => m_MinAngle;
+            set => m_MinAngle = value;
+        }
 
         /// <summary>
         /// Events to trigger when the lever activates
         /// </summary>
-        public UnityEvent OnLeverActivate => m_OnLeverActivate;
+        public UnityEvent onLeverActivate => m_OnLeverActivate;
 
         /// <summary>
         /// Events to trigger when the lever deactivates
         /// </summary>
-        public UnityEvent OnLeverDeactivate => m_OnLeverDeactivate;
-        
-        /// <summary>
-        /// Events to trigger when the slider is moved
-        /// </summary>
-        public UnityEventFloat OnValueChange => m_OnValueChange;
+        public UnityEvent onLeverDeactivate => m_OnLeverDeactivate;
 
         void Start()
         {
@@ -118,15 +115,12 @@ namespace MikeNspired.UnityXRHandPoser
         void StartGrab(SelectEnterEventArgs args)
         {
             m_Interactor = args.interactorObject;
-            m_Controller = m_Interactor.transform.GetComponentInParent<ActionBasedController>();
         }
 
         void EndGrab(SelectExitEventArgs args)
         {
             SetValue(m_Value, true);
             m_Interactor = null;
-            m_Controller = null;
-
         }
 
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
@@ -144,12 +138,7 @@ namespace MikeNspired.UnityXRHandPoser
 
         Vector3 GetLookDirection()
         {
-            Vector3 direction;
-            if(m_UseControllerForPosition)
-                direction = m_Controller.transform.position - m_Handle.position;
-            else
-                direction = m_Interactor.GetAttachTransform(this).position - m_Handle.position;
-            
+            Vector3 direction = m_Interactor.GetAttachTransform(this).position - m_Handle.position;
             direction = transform.InverseTransformDirection(direction);
             direction.x = 0;
 

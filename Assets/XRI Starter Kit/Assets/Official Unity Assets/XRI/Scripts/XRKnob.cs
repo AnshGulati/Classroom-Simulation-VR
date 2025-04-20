@@ -1,9 +1,8 @@
 using System;
-using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
-using static Unity.Mathematics.math;
 
-namespace MikeNspired.UnityXRHandPoser
+namespace UnityEngine.XR.Content.Interaction
 {
     /// <summary>
     /// An interactable knob that follows the rotation of the interactor
@@ -20,34 +19,31 @@ namespace MikeNspired.UnityXRHandPoser
             /// <summary>
             /// The anchor rotation we calculate an offset from
             /// </summary>
-            float baseAngle;
+            float m_BaseAngle;
 
             /// <summary>
             /// The target rotate we calculate the offset to
             /// </summary>
-            float currentOffset;
+            float m_CurrentOffset;
 
             /// <summary>
             /// Any previous offsets we've added in
             /// </summary>
-            float accumulatedAngle;
+            float m_AccumulatedAngle;
 
             /// <summary>
             /// The total rotation that occurred from when this rotation started being tracked
             /// </summary>
-            public float TotalOffset
-            {
-                get { return accumulatedAngle + currentOffset; }
-            }
+            public float totalOffset => m_AccumulatedAngle + m_CurrentOffset;
 
             /// <summary>
             /// Resets the tracked rotation so that total offset returns 0
             /// </summary>
             public void Reset()
             {
-                baseAngle = 0.0f;
-                currentOffset = 0.0f;
-                accumulatedAngle = 0.0f;
+                m_BaseAngle = 0.0f;
+                m_CurrentOffset = 0.0f;
+                m_AccumulatedAngle = 0.0f;
             }
 
             /// <summary>
@@ -57,11 +53,11 @@ namespace MikeNspired.UnityXRHandPoser
             public void SetBaseFromVector(Vector3 direction)
             {
                 // Update any accumulated angle
-                accumulatedAngle += currentOffset;
+                m_AccumulatedAngle += m_CurrentOffset;
 
                 // Now set a new base angle
-                baseAngle = Mathf.Atan2(direction.z, direction.x) * Mathf.Rad2Deg;
-                currentOffset = 0.0f;
+                m_BaseAngle = Mathf.Atan2(direction.z, direction.x) * Mathf.Rad2Deg;
+                m_CurrentOffset = 0.0f;
             }
 
             public void SetTargetFromVector(Vector3 direction)
@@ -70,26 +66,25 @@ namespace MikeNspired.UnityXRHandPoser
                 var targetAngle = Mathf.Atan2(direction.z, direction.x) * Mathf.Rad2Deg;
 
                 // Return the offset
-                currentOffset = ShortestAngleDistance(baseAngle, targetAngle, 360.0f);
+                m_CurrentOffset = ShortestAngleDistance(m_BaseAngle, targetAngle, 360.0f);
 
                 // If the offset is greater than 90 degrees, we update the base so we can rotate beyond 180 degrees
-                if (Mathf.Abs(currentOffset) > 90.0f)
+                if (Mathf.Abs(m_CurrentOffset) > 90.0f)
                 {
-                    baseAngle = targetAngle;
-                    accumulatedAngle += currentOffset;
-                    currentOffset = 0.0f;
+                    m_BaseAngle = targetAngle;
+                    m_AccumulatedAngle += m_CurrentOffset;
+                    m_CurrentOffset = 0.0f;
                 }
             }
         }
+
+        [Serializable]
+        public class ValueChangeEvent : UnityEvent<float> { }
 
         [SerializeField]
         [Tooltip("The object that is visually grabbed and manipulated")]
         Transform m_Handle = null;
 
-        [SerializeField]
-        [Tooltip("The default behaviour uses the attach transform")]
-        bool m_UseControllerForPosition = true;
-        
         [SerializeField]
         [Tooltip("The value of the knob")]
         [Range(0.0f, 1.0f)]
@@ -121,21 +116,9 @@ namespace MikeNspired.UnityXRHandPoser
 
         [SerializeField]
         [Tooltip("Events to trigger when the knob is rotated")]
-        UnityEventFloat m_OnValueChange = new UnityEventFloat();
-        
-        [SerializeField]
-        [Tooltip("Events to trigger when the knob is incremented")]
-        UnityEventInt m_OnIncrementValueChange = new UnityEventInt();
+        ValueChangeEvent m_OnValueChange = new ValueChangeEvent();
 
-        [SerializeField]
-        [Tooltip("Remap sliders min value of 0 to a new value")]
-        float m_RemapValueMin = 0f;
-        [SerializeField]
-        [Tooltip("Remap sliders max value of 1 to a new value")]
-        float m_RemapValueMax = 1f;
-        
         IXRSelectInteractor m_Interactor;
-        ActionBasedController m_Controller;
 
         bool m_PositionDriven = false;
         bool m_UpVectorDriven = false;
@@ -149,14 +132,18 @@ namespace MikeNspired.UnityXRHandPoser
         /// <summary>
         /// The object that is visually grabbed and manipulated
         /// </summary>
-        public Transform Handle { get { return m_Handle; } set { m_Handle = value; } }
+        public Transform handle
+        {
+            get => m_Handle;
+            set => m_Handle = value;
+        }
 
         /// <summary>
         /// The value of the knob
         /// </summary>
-        public float Value
+        public float value
         {
-            get { return m_Value; }
+            get => m_Value;
             set
             {
                 SetValue(value);
@@ -167,34 +154,48 @@ namespace MikeNspired.UnityXRHandPoser
         /// <summary>
         /// Whether this knob's rotation should be clamped by the angle limits
         /// </summary>
-        public bool ClampedMotion { get { return m_ClampedMotion; } set { m_ClampedMotion = value; } }
+        public bool clampedMotion
+        {
+            get => m_ClampedMotion;
+            set => m_ClampedMotion = value;
+        }
 
         /// <summary>
         /// Rotation of the knob at value '1'
         /// </summary>
-        public float MaxAngle { get { return m_MaxAngle; } set { m_MaxAngle = value; } }
+        public float maxAngle
+        {
+            get => m_MaxAngle;
+            set => m_MaxAngle = value;
+        }
 
         /// <summary>
         /// Rotation of the knob at value '0'
         /// </summary>
-        public float MinAngle { get { return m_MinAngle; } set { m_MinAngle = value; } }
+        public float minAngle
+        {
+            get => m_MinAngle;
+            set => m_MinAngle = value;
+        }
 
         /// <summary>
         /// The position of the interactor controls rotation when outside this radius
         /// </summary>
-        public float PositionTrackedRadius { get { return m_PositionTrackedRadius; } set { m_PositionTrackedRadius = value; } }
+        public float positionTrackedRadius
+        {
+            get => m_PositionTrackedRadius;
+            set => m_PositionTrackedRadius = value;
+        }
 
         /// <summary>
         /// Events to trigger when the knob is rotated
         /// </summary>
-        public UnityEventFloat OnValueChange => m_OnValueChange;
-        public UnityEventInt OnIncrementValueChange => m_OnIncrementValueChange;
+        public ValueChangeEvent onValueChange => m_OnValueChange;
 
-        private void Start()
+        void Start()
         {
             SetValue(m_Value);
             SetKnobRotation(ValueToRotation());
-            m_previousValue = Value;
         }
 
         protected override void OnEnable()
@@ -211,10 +212,10 @@ namespace MikeNspired.UnityXRHandPoser
             base.OnDisable();
         }
 
-        private void StartGrab(SelectEnterEventArgs args)
+        void StartGrab(SelectEnterEventArgs args)
         {
             m_Interactor = args.interactorObject;
-            m_Controller = m_Interactor.transform.GetComponentInParent<ActionBasedController>();
+
             m_PositionAngles.Reset();
             m_UpVectorAngles.Reset();
             m_ForwardVectorAngles.Reset();
@@ -223,10 +224,9 @@ namespace MikeNspired.UnityXRHandPoser
             UpdateRotation(true);
         }
 
-        private void EndGrab(SelectExitEventArgs args)
+        void EndGrab(SelectExitEventArgs args)
         {
             m_Interactor = null;
-            m_Controller = null;
         }
 
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
@@ -242,11 +242,11 @@ namespace MikeNspired.UnityXRHandPoser
             }
         }
 
-        private void UpdateRotation(bool freshCheck = false)
+        void UpdateRotation(bool freshCheck = false)
         {
             // Are we in position offset or direction rotation mode?
-            var interactorTransform = m_UseControllerForPosition ? m_Controller.transform : m_Interactor.GetAttachTransform(this);
-            
+            var interactorTransform = m_Interactor.GetAttachTransform(this);
+
             // We cache the three potential sources of rotation - the position offset, the forward vector of the controller, and up vector of the controller
             // We store any data used for determining which rotation to use, then flatten the vectors to the local xz plane
             var localOffset = transform.InverseTransformVector(interactorTransform.position - m_Handle.position);
@@ -316,7 +316,7 @@ namespace MikeNspired.UnityXRHandPoser
                 m_ForwardVectorAngles.SetTargetFromVector(localForward);
 
             // Apply offset to base knob rotation to get new knob rotation
-            var knobRotation = m_BaseKnobRotation - ((m_UpVectorAngles.TotalOffset + m_ForwardVectorAngles.TotalOffset) * m_TwistSensitivity) - m_PositionAngles.TotalOffset;
+            var knobRotation = m_BaseKnobRotation - ((m_UpVectorAngles.totalOffset + m_ForwardVectorAngles.totalOffset) * m_TwistSensitivity) - m_PositionAngles.totalOffset;
 
             // Clamp to range
             if (m_ClampedMotion)
@@ -329,7 +329,7 @@ namespace MikeNspired.UnityXRHandPoser
             SetValue(knobValue);
         }
 
-        private void SetKnobRotation(float angle)
+        void SetKnobRotation(float angle)
         {
             if (m_AngleIncrement > 0)
             {
@@ -341,9 +341,7 @@ namespace MikeNspired.UnityXRHandPoser
                 m_Handle.localEulerAngles = new Vector3(0.0f, angle, 0.0f);
         }
 
-        private float m_previousValue;
-
-        private void SetValue(float value)
+        void SetValue(float value)
         {
             if (m_ClampedMotion)
                 value = Mathf.Clamp01(value);
@@ -354,21 +352,13 @@ namespace MikeNspired.UnityXRHandPoser
                 var angle = Mathf.Lerp(0.0f, angleRange, value);
                 angle = Mathf.Round(angle / m_AngleIncrement) * m_AngleIncrement;
                 value = Mathf.InverseLerp(0.0f, angleRange, angle);
-
-                if (Math.Abs(m_previousValue - value) > .001f)
-                {
-                    m_previousValue = value;
-                    m_OnIncrementValueChange.Invoke(Mathf.RoundToInt(angle/m_AngleIncrement));
-                }
             }
 
             m_Value = value;
-            m_OnValueChange.Invoke(remap(0,1,m_RemapValueMin,m_RemapValueMax,m_Value));
-
-            // m_OnValueChange.Invoke(m_Value);
+            m_OnValueChange.Invoke(m_Value);
         }
 
-        private float ValueToRotation()
+        float ValueToRotation()
         {
             return m_ClampedMotion ? Mathf.Lerp(m_MinAngle, m_MaxAngle, m_Value) : Mathf.LerpUnclamped(m_MinAngle, m_MaxAngle, m_Value);
         }

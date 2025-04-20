@@ -1,8 +1,7 @@
-using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 
-namespace MikeNspired.UnityXRHandPoser
+namespace UnityEngine.XR.Content.Interaction
 {
     /// <summary>
     /// An interactable that can be pressed by a direct interactor
@@ -36,22 +35,30 @@ namespace MikeNspired.UnityXRHandPoser
         /// <summary>
         /// The object that is visually pressed down
         /// </summary>
-        public Transform Button { get { return m_Button; } set { m_Button = value; } }
+        public Transform button
+        {
+            get => m_Button;
+            set => m_Button = value;
+        }
 
         /// <summary>
         /// The distance the button can be pressed
         /// </summary>
-        public float PressDistance { get { return m_PressDistance; } set { m_PressDistance = value; } }
+        public float pressDistance
+        {
+            get => m_PressDistance;
+            set => m_PressDistance = value;
+        }
 
         /// <summary>
         /// Events to trigger when the button is pressed
         /// </summary>
-        public UnityEvent OnPress => m_OnPress;
+        public UnityEvent onPress => m_OnPress;
 
         /// <summary>
         /// Events to trigger when the button is released
         /// </summary>
-        public UnityEvent OnRelease => m_OnRelease;
+        public UnityEvent onRelease => m_OnRelease;
 
         void Start()
         {
