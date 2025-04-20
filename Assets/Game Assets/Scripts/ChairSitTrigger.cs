@@ -14,8 +14,9 @@ public class ChairSitTrigger : MonoBehaviour
     private float holdTimer = 0f;
     private float requiredHoldTime = 1f;
 
-    [SerializeField] private VoiceManager voiceManager;
+    public GameObject standUpUI;
 
+    [SerializeField] private VoiceManager voiceManager;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -49,7 +50,8 @@ public class ChairSitTrigger : MonoBehaviour
             if (holdTimer >= requiredHoldTime)
             {
                 sitManager.Sit(sitPoint);
-                //GameTransitionManager.Instance.ShowInstructionUI(chairID, false);
+                PlayerFinalSpeechHandler.Instance.SetCurrentChair(this);
+                GameTransitionManager.Instance.ShowInstructionUI(chairID, false);
                 holdTimer = 0f;
                 holdCircleUI.fillAmount = 0f;
             }

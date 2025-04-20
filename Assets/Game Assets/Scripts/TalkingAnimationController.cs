@@ -6,21 +6,21 @@ public class TalkingAnimationController : MonoBehaviour
     public Animator animator;
     public bool isTalking = false;
 
-    public void StartTalkingDelayed(float delay)
+    public void StartTalkingDelayed(float delay, bool enable)
     {
-        StartCoroutine(StartTalkingAfterDelay(delay));
+        StartCoroutine(StartTalkingAfterDelay(delay, enable));
     }
 
-    private IEnumerator StartTalkingAfterDelay(float delay)
+    private IEnumerator StartTalkingAfterDelay(float delay, bool enable)
     {
         yield return new WaitForSeconds(delay);
-        isTalking = true;
-        animator.SetBool("isTalking", true);
+        isTalking = enable;
+        animator.SetBool("isTalking", enable);
     }
 
-    public void StopTalking()
-    {
-        isTalking = false;
-        animator.SetBool("isTalking", false);
-    }
+    //public void StopTalking()
+    //{
+    //    isTalking = false;
+    //    animator.SetBool("isTalking", false);
+    //}
 }

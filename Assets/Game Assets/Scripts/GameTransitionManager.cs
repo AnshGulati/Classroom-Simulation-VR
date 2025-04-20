@@ -26,11 +26,11 @@ public class GameTransitionManager : MonoBehaviour
 
     public TeacherManager teacherManager;
 
-    public void TriggerStudentTalking(int index)
+    public void TriggerStudentTalking(int index, bool enable)
     {
         if (index >= 0 && index < talkingControllers.Length)
         {
-            talkingControllers[index].StartTalkingDelayed(delayBeforeTalking);
+            talkingControllers[index].StartTalkingDelayed(delayBeforeTalking, enable);
         }
 
         
@@ -47,8 +47,6 @@ public class GameTransitionManager : MonoBehaviour
     {
         foreach (GameObject panel in instructionPanels)
             panel.SetActive(false);
-
-        teacherManager.TriggerTeacherEntrance();
     }
 
     public void ShowInstructionUI(int chairID, bool show)

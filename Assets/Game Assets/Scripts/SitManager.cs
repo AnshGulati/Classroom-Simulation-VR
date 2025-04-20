@@ -44,6 +44,19 @@ public class SitManager : MonoBehaviour
         sittingCoroutine = StartCoroutine(TransitionToSitting(sitPoint));
     }
 
+    public void Stand()
+    {
+        if (!isSitting) return;
+
+        isSitting = false;
+        GameTransitionManager.Instance.ToggleMovement(true);
+
+        Transform rig = GameTransitionManager.Instance.xrRig.transform;
+        Vector3 standPosition = rig.position - new Vector3(0, sittingHeight, 0); // Move player up
+
+        rig.position = standPosition;
+    }
+
     public bool CanSit()
     {
         var left = GameTransitionManager.Instance.leftController;

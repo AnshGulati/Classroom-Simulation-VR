@@ -16,9 +16,12 @@ public class TeacherManager : MonoBehaviour
 
     [Header("UI")]
     public GameObject dialogUI;
+    public GameObject textOneUI;
+    public GameObject textTwoUI;
 
     [Header("Sound")]
     public AudioSource teacherFootsteps;
+    [SerializeField] private VoiceLinesManager voiceLinesManager;
 
     [Header("Variables")]
     public float moveSpeed = 2f;
@@ -32,6 +35,8 @@ public class TeacherManager : MonoBehaviour
     {
         teacher.SetActive(false);
         dialogUI.SetActive(false);
+        textOneUI.SetActive(false);
+        textTwoUI.SetActive(false);
     }
 
     public void TriggerTeacherEntrance()
@@ -108,6 +113,7 @@ public class TeacherManager : MonoBehaviour
         }
 
         teacherAnimator.SetBool("isTalking", true);
+        voiceLinesManager.TriggerLine8();
 
         if (dialogUI != null)
         {

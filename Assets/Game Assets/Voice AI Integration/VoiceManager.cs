@@ -29,7 +29,13 @@ public class VoiceManager : MonoBehaviour
     [SerializeField] private UnityEvent wakeWordDetected;
     [SerializeField] private UnityEvent<string> completeTranscription;
 
+    [Header("Logic for Game Transition")]
+    [SerializeField] private TeacherManager teacherManager;
+    [SerializeField] private float teacherDelayAfterTranscript = 2f;
+    [SerializeField] private VoiceLinesManager voiceLinesManager;
+
     private bool _voiceCommandReady;
+    private bool teacherTriggered = false;
 
     private void Awake()
     {
@@ -90,12 +96,31 @@ public class VoiceManager : MonoBehaviour
     private void OnFullTranscription(string transcription)
     {
         if (!_voiceCommandReady || currentChairID == -1) return;
+
         _voiceCommandReady = false;
         completeTranscription?.Invoke(transcription);
 
         if (chairTextMap.TryGetValue(currentChairID, out var textUI))
         {
             textUI.text = transcription;
+        }
+
+        StartCoroutine(TriggerTeacherAfterDelay());
+    }
+
+    private IEnumerator TriggerTeacherAfterDelay()
+    {
+        if (teacherTriggered) yield break;
+
+        teacherTriggered = true;
+
+        voiceLinesManager.TriggerLine7();
+
+        yield return new WaitForSeconds(teacherDelayAfterTranscript);
+
+        if (teacherManager != null)
+        {
+            teacherManager.TriggerTeacherEntrance();
         }
     }
 }

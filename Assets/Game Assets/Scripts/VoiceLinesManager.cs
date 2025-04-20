@@ -1,5 +1,7 @@
+using Oculus.Voice;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class VoiceLinesManager : MonoBehaviour
@@ -36,6 +38,9 @@ public class VoiceLinesManager : MonoBehaviour
 
     public static VoiceLinesManager Instance;
     private ChairSitTrigger currentChairSitTrigger;
+    public TeacherManager teacherManager;
+    public GameObject finalTransition;
+    [SerializeField] private GameObject appVoiceExperience;
 
     private void Awake()
     {
@@ -51,6 +56,9 @@ public class VoiceLinesManager : MonoBehaviour
         {
             GameTransitionManager.Instance.ShowExperienceUI(i, false);
         }
+
+        finalTransition.SetActive(false);
+        finalTransition.GetComponent<PlayerFinalSpeechHandler>().enabled = false;
     }
 
     public void SetCurrentChair(ChairSitTrigger chair)
@@ -122,7 +130,10 @@ public class VoiceLinesManager : MonoBehaviour
         yield return new WaitForSeconds(delayToLine6);
 
         PlayVoiceLine(line6);
+        GameTransitionManager.Instance.TriggerStudentTalking(currentChairSitTrigger.chairID, true);
         yield return new WaitForSeconds(line6.clip.length + 5f);
+
+        
 
         PlayVoiceLine(line6_2);
         yield return new WaitForSeconds(line6_2.clip.length);
@@ -133,13 +144,50 @@ public class VoiceLinesManager : MonoBehaviour
 
         if (currentChairSitTrigger != null)
             GameTransitionManager.Instance.ShowExperienceUI(currentChairSitTrigger.chairID, true);
-
-        GameTransitionManager.Instance.TriggerStudentTalking(currentChairSitTrigger.chairID);
     }
 
     // Functions to be called externally:
-    public void TriggerLine7() => PlayVoiceLine(line7);
-    public void TriggerLine8() => PlayVoiceLine(line8);
+    public void TriggerLine7()
+    {
+        StartCoroutine(HandleLine7());
+    }
+
+    private IEnumerator HandleLine7()
+    {
+        yield return new WaitForSeconds(3f);
+        PlayVoiceLine(line7);
+        yield return new WaitForSeconds(line7.clip.length+10f);
+        GameTransitionManager.Instance.TriggerStudentTalking(currentChairSitTrigger.chairID, false);
+        appVoiceExperience.SetActive(false);
+        if (currentChairSitTrigger != null)
+            GameTransitionManager.Instance.ShowExperienceUI(currentChairSitTrigger.chairID, false);
+
+        yield return new WaitForSeconds(10f);
+        teacherManager.TriggerTeacherEntrance();
+    }
+
+    public void TriggerLine8()
+    {
+        StartCoroutine(PlayLine8to11Sequence());
+    }
+
+    private IEnumerator PlayLine8to11Sequence()
+    {
+        PlayVoiceLine(line8);
+        teacherManager.textOneUI.SetActive(true);
+        yield return new WaitForSeconds(line8.clip.length+3f);
+        TriggerLine9();
+        yield return new WaitForSeconds(line9.clip.length+3f);
+        TriggerLine10();
+        teacherManager.textOneUI.SetActive(false);
+        teacherManager.textTwoUI.SetActive(true);
+        yield return new WaitForSeconds(line10.clip.length+3f);
+        TriggerLine11();
+        yield return new WaitForSeconds(line11.clip.length+3f);
+        finalTransition.SetActive(true);
+        finalTransition.GetComponent<PlayerFinalSpeechHandler>().enabled = true;
+    }
+
     public void TriggerLine9() => StartCoroutine(PlayVoiceLineWithDelay(line9, 3f));
     public void TriggerLine10() => StartCoroutine(PlayVoiceLineWithDelay(line10, 3f));
     public void TriggerLine11() => StartCoroutine(PlayVoiceLineWithDelay(line11, 3f));
