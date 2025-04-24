@@ -19,6 +19,7 @@ public class SceneTransitionManager : MonoBehaviour
     public void GoToScene(int sceneIndex)
     {
         StartCoroutine(GoToSceneRoutine(sceneIndex));
+        //SceneManager.LoadScene(1);
     }
 
     IEnumerator GoToSceneRoutine(int sceneIndex)

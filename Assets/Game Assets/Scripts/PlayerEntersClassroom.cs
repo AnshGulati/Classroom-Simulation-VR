@@ -19,7 +19,7 @@ public class PlayerEntersClassroom : MonoBehaviour
     [Header("Student Settings")]
     [SerializeField] private List<Transform> studentHeadsToLook; // The parts of the students that should rotate (e.g. head)
     [SerializeField] private float lookDuration = 2f;
-    [SerializeField] private float delayBeforeChairHighlight = 2f;
+    [SerializeField] private float delayBeforeChairHighlight = 1f;
 
     private List<Material> outlineMaterials = new List<Material>();
     private bool isPulsing = false;
@@ -27,6 +27,8 @@ public class PlayerEntersClassroom : MonoBehaviour
     private Dictionary<Transform, Quaternion> originalRotations = new Dictionary<Transform, Quaternion>();
 
     private Coroutine pulseCoroutine;
+
+    private bool hasTriggered = false;
 
     private void Start()
     {
@@ -61,8 +63,11 @@ public class PlayerEntersClassroom : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (hasTriggered) return;
+
         if (other.CompareTag("Player") && !isPulsing)
         {
+            hasTriggered = true;
             player = other.transform;
             doorLockAtMax.TriggerDoorReset();
 

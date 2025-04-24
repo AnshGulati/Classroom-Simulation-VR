@@ -27,7 +27,7 @@ public class PlayerFinalSpeechHandler : MonoBehaviour
 
     private bool hasStoodUp = false;
     private bool reachedMarker = false;
-    private bool isFinalSequenceStarted = false;
+    public bool isFinalSequenceStarted = false;
 
     private float holdTimer = 0f;
     private float requiredHoldTime = 1f;

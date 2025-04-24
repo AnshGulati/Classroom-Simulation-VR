@@ -26,6 +26,14 @@ public class DoorLockAtMax : MonoBehaviour
         maxLimit = hinge.limits.max;
         minLimit = hinge.limits.min;
 
+        hinge.useLimits = true;
+
+        JointSpring spring = hinge.spring;
+        spring.spring = 0f;
+        spring.damper = 150f;
+        hinge.spring = spring;
+        hinge.useSpring = true;
+
         foreach (GameObject door in originalDoors)
         {
             door.SetActive(true);
@@ -53,8 +61,8 @@ public class DoorLockAtMax : MonoBehaviour
     private void LockDoor()
     {
         isLocked = true;
-        rb.isKinematic = true;
-        grabInteractable.enabled = false;
+        //rb.isKinematic = true;
+        //grabInteractable.enabled = false;
         openUI.SetActive(false);
 
         Debug.Log($"{gameObject.name} locked at max hinge angle.");

@@ -16,7 +16,7 @@ public class SitManager : MonoBehaviour
     [SerializeField] private float transitionSpeed = 5f;
     [SerializeField] private Transform lookAtTarget;
 
-    private bool isSitting = false;
+    public bool isSitting = false;
     private Coroutine sittingCoroutine;
 
     private void Start()
